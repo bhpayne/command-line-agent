@@ -33,7 +33,7 @@ class Config:
     allowed_commands: list = field(default_factory=lambda: [
         "cd", "cp", "ls", "cat", "find", "touch", "echo", "grep", 
         "pwd", "mkdir", "wget", "sort", "head", "tail", "du",
-        "xargs", "find",
+        "xargs", "find", "wc", "git"
     ])
 
     @property

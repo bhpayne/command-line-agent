@@ -1,7 +1,9 @@
 import json
+import os
 import urllib.request
 import urllib.error
 import uuid
+from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from configure_llm import Config
@@ -81,6 +83,12 @@ class LLM:
 
     def __init__(self, config: Config):
         self.config = config
+        self.sequence_number = 1
+        
+        # Create a 'logs' directory within the root directory configured in Config
+        self.logs_dir = os.path.join(self.config.root_dir, "logs")
+        os.makedirs(self.logs_dir, exist_ok=True)
+        
         print(f"Using model '{config.llm_model_name}' from '{config.llm_base_url}'")
 
     def query(
@@ -107,6 +115,22 @@ class LLM:
         if max_tokens is not None:
             payload["max_tokens"] = max_tokens
 
+        # --- Capture and log the prompt payload ---
+        now = datetime.now()
+        # Slicing the last 4 characters from %f leaves exactly two decimal points for centiseconds
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
+        model_name = self.config.llm_model_name
+        seq_str = f"{self.sequence_number:06d}"
+        
+        prompt_filename = f"{timestamp}_{model_name}_{seq_str}_prompt.log"
+        prompt_filepath = os.path.join(self.logs_dir, prompt_filename)
+        
+        try:
+            with open(prompt_filepath, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"\n[Warning] Failed to write prompt log: {e}")
+
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.config.llm_api_key}"
@@ -119,22 +143,48 @@ class LLM:
             method="POST"
         )
 
+        res_json = {}
+        error_occurred = False
+        error_message = ""
+
         try:
             with urllib.request.urlopen(req) as response:
                 res_data = response.read().decode("utf-8")
                 res_json = json.loads(res_data)
         except urllib.error.HTTPError as e:
+            error_occurred = True
             error_content = e.read().decode("utf-8")
             print(f"\n[Error] API Request failed (HTTP {e.code}):")
             try:
-                err_json = json.loads(error_content)
-                print(json.dumps(err_json, indent=2))
+                res_json = json.loads(error_content)
+                print(json.dumps(res_json, indent=2))
             except Exception:
+                res_json = {"error": error_content}
                 print(error_content)
-            return f"Error: API call failed with status code {e.code}", []
+            error_message = f"Error: API call failed with status code {e.code}"
         except Exception as e:
+            error_occurred = True
             print(f"\n[Error] Connection failed: {e}")
-            return f"Error: Failed to connect to the model provider.", []
+            res_json = {"error": str(e)}
+            error_message = "Error: Failed to connect to the model provider."
+
+        # --- Capture and log the response payload ---
+        resp_now = datetime.now()
+        resp_timestamp = resp_now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
+        response_filename = f"{resp_timestamp}_{model_name}_{seq_str}_response.log"
+        response_filepath = os.path.join(self.logs_dir, response_filename)
+        
+        try:
+            with open(response_filepath, "w", encoding="utf-8") as f:
+                json.dump(res_json, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"\n[Warning] Failed to write response log: {e}")
+
+        # Increment sequence counter for subsequent queries
+        self.sequence_number += 1
+
+        if error_occurred:
+            return error_message, []
 
         choices = res_json.get("choices", [])
         if not choices:
