@@ -11,10 +11,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /opt
 
-COPY . .
+COPY src/ .
 
 RUN dnf install -y python3 python3-pip
 
 COPY requirements.txt requirements.txt 
-RUN pip install -r requirements.txt --no-cache-dir -vvv --ignore-installed blinker
+RUN pip install -r requirements.txt --no-cache-dir -vvv
 
