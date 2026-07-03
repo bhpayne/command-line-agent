@@ -41,7 +41,7 @@ class Config:
         commands = [
             "cd", "cp", "ls", "cat", "find", "touch", "echo", "grep", 
             "pwd", "mkdir", "wget", "sort", "head", "tail", "du",
-            "xargs", "find", "wc", 
+            "xargs", "find", "wc", "hostname"
         ]
         if self.inside_container_or_virtual_machine:
             commands.extend([
