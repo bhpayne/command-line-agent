@@ -24,6 +24,11 @@ Using model 'gemini-2.5-flash' from 'https://generativelanguage.googleapis.com/v
 
 A container (e.g., Docker, Podman, Apptainer) or a Virtual Machine can isolate the agent.
 
+# Example capabilities
+
+- inspect this directory tree and find the 5 largest files
+- based on logs in `/var/log/dmesg`, what caused the most recent system crash?
+
 # Context
 
 > Unlike chatbots that respond in a request-and-reply fashion, AI agents are systems that take high-level goals as the input, then autonomously reason, plan, and execute tasks to achieve those goals. A key enabler for this process is tool calling (a.k.a. function calling): instead of just replying with text, the agent can invoke external tools or APIs to actually carry out actions, determine their outcomes, and plan for the next steps.
