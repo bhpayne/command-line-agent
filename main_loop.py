@@ -34,15 +34,16 @@ def main(config: Config):
             print("\n[🤖] Thinking...")
             response, tool_calls = llm.query(messages, [bash.to_json_schema()])
 
-            if response:
-                response = response.strip()
-                # Do not store the thinking part to save context space
-                if "</think>" in response:
-                    response = response.split("</think>")[-1].strip()
-
-                # Add the (non-empty) response to the context
+            # Store the assistant response containing tool calls to keep history valid
+            if response or tool_calls:
+                clean_response = ""
                 if response:
-                    messages.add_assistant_message(response)
+                    clean_response = response.strip()
+                    # Do not store the thinking part to save context space
+                    if "</think>" in clean_response:
+                        clean_response = clean_response.split("</think>")[-1].strip()
+
+                messages.add_assistant_message(clean_response, tool_calls)
 
             # Process tool calls
             if tool_calls:
@@ -61,17 +62,20 @@ def main(config: Config):
                         else:
                             tool_call_result = {"error": "The user declined the execution of this command."}
 
-                    messages.add_tool_message(tool_call_result, tc.id)
+                    # Add the tool result back to history, providing id and name
+                    messages.add_tool_message(tool_call_result, tc.id, function_name)
             else:
                 # Display the assistant's message to the user.
                 if response:
-                    print(response)
-                    print("-" * 80 + "\n")
+                    clean_response = response.strip()
+                    if "</think>" in clean_response:
+                        clean_response = clean_response.split("</think>")[-1].strip()
+                    if clean_response:
+                        print(clean_response)
+                        print("-" * 80 + "\n")
                 break
 
 if __name__ == "__main__":
     # Load the configuration
     config = Config()
     main(config)
-
-

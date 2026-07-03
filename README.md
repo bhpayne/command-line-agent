@@ -15,3 +15,7 @@
 From <https://developer.nvidia.com/blog/create-your-own-bash-computer-use-agent-with-nvidia-nemotron-in-one-hour/>
 and the accompanying <https://www.youtube.com/watch?v=F7f-eFou2-o> and <https://github.com/NVIDIA/GenerativeAIExamples/tree/be9acc9b9286a8b4ba3ef6d56dcb7ff989d5681a/nemotron/LLM/bash_computer_use_agent>
 
+
+# Monitor API usage
+
+<https://aistudio.google.com/usage>
