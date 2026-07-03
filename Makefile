@@ -22,17 +22,17 @@ container_build:
 	$(DOCKER_OR_PODMAN) build -t $(IMAGE_NAME):$(CONTAINER_TAG) .
 
 container_live:
-        $(DOCKER_OR_PODMAN) run -it --rm \
+	$(DOCKER_OR_PODMAN) run -it --rm \
                 -v `pwd`:/scratch -w /scratch/ \
                 --user $(id -u):$(id -g) \
                 $(IMAGE_NAME):$(CONTAINER_TAG) /bin/bash
 
 black_out:
-        $(DOCKER_OR_PODMAN) run --rm -v`pwd`:/scratch --entrypoint='' --workdir /scratch/ $(IMAGE_NAME):$(CONTAINER_TAG) make black_in
+	$(DOCKER_OR_PODMAN) run --rm -v`pwd`:/scratch --entrypoint='' --workdir /scratch/ $(IMAGE_NAME):$(CONTAINER_TAG) make black_in
 
 black_in:
-        black -v --workers 1 *.py
+	black -v --workers 1 *.py
 
 mypy_out:
-        $(DOCKER_OR_PODMAN) run --rm -v`pwd`:/scratch --entrypoint='' --workdir /scratch/ $(IMAGE_NAME):$(CONTAINER_TAG) mypy --install-types --non-interactive --check-untyped-defs webserver_for_pdg/pdg_app.py webserver_for_pdg/library
+	$(DOCKER_OR_PODMAN) run --rm -v`pwd`:/scratch --entrypoint='' --workdir /scratch/ $(IMAGE_NAME):$(CONTAINER_TAG) mypy --install-types --non-interactive --check-untyped-defs webserver_for_pdg/pdg_app.py webserver_for_pdg/library
 
