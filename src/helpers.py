@@ -13,6 +13,8 @@ from configure_llm import Config
 class Messages:
     """
     An abstraction for a list of system/user/assistant/tool messages.
+
+    This is the context history for iterative interactions in the same session
     """
 
     def __init__(self, system_message: str = ""):
