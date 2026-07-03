@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 import os
+
+# Python's dataclasses library explicitly prevents mutable lists.
+# If that weren't used then lists would be created only once when the 
+# class itself is defined. Every instance of that class would then 
+# share the exact same list in memory.
 from dataclasses import dataclass, field
 
 @dataclass
@@ -17,6 +22,9 @@ class Config:
     llm_temperature: float = 0.1
     llm_top_p: float = 0.95
 
+    # Determine whether to write prompts and responses to log files
+    log_prompts: bool = False
+
     # -------------------------------------
     # Agent configuration
     # -------------------------------------
@@ -24,12 +32,24 @@ class Config:
     # The directory path that the agent can access and operate in.
     root_dir: str = os.path.dirname(os.path.abspath(__file__))
 
-    # The list of commands that the agent can execute.
-    allowed_commands: list = field(default_factory=lambda: [
-        "cd", "cp", "ls", "cat", "find", "touch", "echo", "grep", 
-        "pwd", "mkdir", "wget", "sort", "head", "tail", "du",
-        "xargs", "find", "wc", "git"
-    ])
+    # Flag to enable container/VM specific commands
+    inside_container_or_virtual_machine: bool = False
+
+
+    @property
+    def allowed_commands(self) -> list:
+        commands = [
+            "cd", "cp", "ls", "cat", "find", "touch", "echo", "grep", 
+            "pwd", "mkdir", "wget", "sort", "head", "tail", "du",
+            "xargs", "find", "wc", 
+        ]
+        if self.inside_container_or_virtual_machine:
+            commands.extend([
+                "git", "docker", "podman", "apptainer",
+                "python3", "pip", "curl",
+            ])
+        # Use dict.fromkeys to safely remove duplicates (like 'wget') while preserving list order
+        return list(dict.fromkeys(commands))
 
     @property
     def system_prompt(self) -> str:

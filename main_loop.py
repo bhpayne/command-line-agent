@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import json
-
 import argparse
 
 from configure_llm import Config
@@ -84,9 +83,12 @@ if __name__ == "__main__":
     theparser = argparse.ArgumentParser(description="agentic LLM")
 
     # True if flag is present, False if absent
-    theparser.add_argument("--log", action="log_prompts", help="log prompts and responses")
+    theparser.add_argument("--log", action="store_true", help="log prompts and responses to file")
+
+    theparser.add_argument("--isolated", action="store_true", help="agent is inside a container or virtual machine, so additional commands to change and remove files are available")
 
     args = theparser.parse_args()
 
-    config = Config()
+    # Pass the command line flag directly into the Config initialization
+    config = Config(log_prompts=args.log, inside_container_or_virtual_machine=args.isolated)
     main(config)

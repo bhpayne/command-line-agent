@@ -87,9 +87,10 @@ class LLM:
         self.config = config
         self.sequence_number = 1
         
-        # Create a 'logs' directory within the root directory configured in Config
         self.logs_dir = os.path.join(self.config.root_dir, "logs")
-        os.makedirs(self.logs_dir, exist_ok=True)
+        # Only create the 'logs' directory if logging is explicitly requested
+        if self.config.log_prompts:
+            os.makedirs(self.logs_dir, exist_ok=True)
         
         print(f"Using model '{config.llm_model_name}' from '{config.llm_base_url}'")
 
@@ -117,21 +118,22 @@ class LLM:
         if max_tokens is not None:
             payload["max_tokens"] = max_tokens
 
-        # --- Capture and log the prompt payload ---
-        now = datetime.now()
-        # Slicing the last 4 characters from %f leaves exactly two decimal points for centiseconds
-        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
+        # Variables used for generating log filenames
         model_name = self.config.llm_model_name
         seq_str = f"{self.sequence_number:06d}"
-        
-        prompt_filename = f"{timestamp}_{model_name}_{seq_str}_prompt.log"
-        prompt_filepath = os.path.join(self.logs_dir, prompt_filename)
-        
-        try:
-            with open(prompt_filepath, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"\n[Warning] Failed to write prompt log: {e}")
+
+        # --- Capture and log the prompt payload ---
+        if self.config.log_prompts:
+            now = datetime.now()
+            timestamp = now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
+            prompt_filename = f"{timestamp}_{model_name}_{seq_str}_prompt.log"
+            prompt_filepath = os.path.join(self.logs_dir, prompt_filename)
+            
+            try:
+                with open(prompt_filepath, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"\n[Warning] Failed to write prompt log: {e}")
 
         headers = {
             "Content-Type": "application/json",
@@ -171,16 +173,17 @@ class LLM:
             error_message = "Error: Failed to connect to the model provider."
 
         # --- Capture and log the response payload ---
-        resp_now = datetime.now()
-        resp_timestamp = resp_now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
-        response_filename = f"{resp_timestamp}_{model_name}_{seq_str}_response.log"
-        response_filepath = os.path.join(self.logs_dir, response_filename)
-        
-        try:
-            with open(response_filepath, "w", encoding="utf-8") as file_handle:
-                json.dump(res_json, file_handle, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"\n[Warning] Failed to write response log: {e}")
+        if self.config.log_prompts:
+            resp_now = datetime.now()
+            resp_timestamp = resp_now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
+            response_filename = f"{resp_timestamp}_{model_name}_{seq_str}_response.log"
+            response_filepath = os.path.join(self.logs_dir, response_filename)
+            
+            try:
+                with open(response_filepath, "w", encoding="utf-8") as file_handle:
+                    json.dump(res_json, file_handle, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"\n[Warning] Failed to write response log: {e}")
 
         # Increment sequence counter for subsequent queries
         self.sequence_number += 1
@@ -204,7 +207,6 @@ class LLM:
                 arguments=func_dict.get("arguments", "{}")
             )
             
-            # Fallback UUID handles scenarios where Gemini leaves the tool call ID blank
             tc_id = tc_dict.get("id") or f"call_{uuid.uuid4().hex[:12]}"
             
             tool_calls.append(ToolCall(
