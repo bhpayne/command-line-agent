@@ -1,6 +1,6 @@
 import json
 
-from config_llm import Config
+from configure_llm import Config
 from run_bash import Bash
 from helpers import Messages, LLM
 

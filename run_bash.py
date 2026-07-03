@@ -1,9 +1,7 @@
-
-
 from typing import Any, Dict, List
 import re
 import subprocess
-from config_llm import Config
+from configure_llm import Config
 
 
 class Bash:
@@ -11,10 +9,26 @@ class Bash:
     An implementation of a tool that executes Bash commands
     """
  
-    def __init__(self, cwd: str, allowed_commands: List[str]):
-        self.cwd = cwd  # The current working directory
-        self._allowed_commands = allowed_commands  # Allowed commands
+    def __init__(self, config: Config):
+        self.cwd = config.root_dir  # The current working directory
+        self._allowed_commands = config.allowed_commands  # Allowed commands
  
+    def _extract_commands(self, cmd: str) -> List[str]:
+        """
+        Splits command chain by pipes and semicolons, extracting the base executable 
+        of each segment to cross-reference with the allowlist.
+        """
+        extracted = []
+        # Split sequential commands (;)
+        for part in cmd.split(";"):
+            # Split piped commands (|)
+            for piped in part.split("|"):
+                cleaned = piped.strip()
+                if cleaned:
+                    # Capture the first word (the command binary itself)
+                    extracted.append(cleaned.split()[0])
+        return extracted
+
     def exec_bash_command(self, cmd: str) -> Dict[str, str]:
         """
         Execute the bash command after getting confirmation from the user
@@ -52,7 +66,7 @@ class Bash:
                         }
                     },
                     "required": ["cmd"],
-   },
+                },
             },
         }
  
@@ -89,4 +103,3 @@ class Bash:
             stderr = str(e)
  
         return {"stdout": stdout, "stderr": stderr, "cwd": new_cwd}
-
