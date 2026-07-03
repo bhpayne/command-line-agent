@@ -3,10 +3,11 @@
 import os
 
 # Python's dataclasses library explicitly prevents mutable lists.
-# If that weren't used then lists would be created only once when the 
-# class itself is defined. Every instance of that class would then 
+# If that weren't used then lists would be created only once when the
+# class itself is defined. Every instance of that class would then
 # share the exact same list in memory.
 from dataclasses import dataclass, field
+
 
 @dataclass
 class Config:
@@ -14,10 +15,10 @@ class Config:
     # Google Gemini's OpenAI-compatible API base endpoint
     llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
     llm_model_name: str = "gemini-2.5-flash"
-    
+
     # Attempts to read from environment variable first, otherwise falls back to the string
     llm_api_key: str = os.environ.get("GEMINI_API_KEY", "YOUR_GOOGLE_GEMINI_API_KEY")
-    
+
     # Sampling parameters
     llm_temperature: float = 0.1
     llm_top_p: float = 0.95
@@ -35,19 +36,43 @@ class Config:
     # Flag to enable container/VM specific commands
     inside_container_or_virtual_machine: bool = False
 
-
     @property
     def allowed_commands(self) -> list:
         commands = [
-            "cd", "cp", "ls", "cat", "find", "touch", "echo", "grep", 
-            "pwd", "mkdir", "wget", "sort", "head", "tail", "du",
-            "xargs", "find", "wc", "hostname", "ifconfig", "netstat",
+            "cd",
+            "cp",
+            "ls",
+            "cat",
+            "find",
+            "touch",
+            "echo",
+            "grep",
+            "pwd",
+            "mkdir",
+            "wget",
+            "sort",
+            "head",
+            "tail",
+            "du",
+            "xargs",
+            "find",
+            "wc",
+            "hostname",
+            "ifconfig",
+            "netstat",
         ]
         if self.inside_container_or_virtual_machine:
-            commands.extend([
-                "git", "docker", "podman", "apptainer",
-                "python3", "pip", "curl",
-            ])
+            commands.extend(
+                [
+                    "git",
+                    "docker",
+                    "podman",
+                    "apptainer",
+                    "python3",
+                    "pip",
+                    "curl",
+                ]
+            )
         # Use dict.fromkeys to safely remove duplicates (like 'wget') while preserving list order
         return list(dict.fromkeys(commands))
 

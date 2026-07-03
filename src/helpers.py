@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 from configure_llm import Config
 
+
 class Messages:
     """
     An abstraction for a list of system/user/assistant/tool messages.
@@ -38,8 +39,8 @@ class Messages:
                     "type": "function",
                     "function": {
                         "name": tc.function.name,
-                        "arguments": tc.function.arguments
-                    }
+                        "arguments": tc.function.arguments,
+                    },
                 }
                 for tc in tool_calls
             ]
@@ -53,12 +54,9 @@ class Messages:
             content_str = str(message)
 
         # Gemini strictly requires the "name" field to match the original function name
-        self.messages.append({
-            "role": "tool",
-            "content": content_str,
-            "tool_call_id": id,
-            "name": name
-        })
+        self.messages.append(
+            {"role": "tool", "content": content_str, "tool_call_id": id, "name": name}
+        )
 
     def to_list(self) -> List[Dict[str, str]]:
         """
@@ -72,6 +70,7 @@ class ToolCallFunction:
     def __init__(self, name: str, arguments: str):
         self.name = name
         self.arguments = arguments
+
 
 class ToolCall:
     def __init__(self, id: str, function: ToolCallFunction, type: str = "function"):
@@ -88,12 +87,12 @@ class LLM:
     def __init__(self, config: Config):
         self.config = config
         self.sequence_number = 1
-        
+
         self.logs_dir = os.path.join(self.config.root_dir, "logs")
         # Only create the 'logs' directory if logging is explicitly requested
         if self.config.log_prompts:
             os.makedirs(self.logs_dir, exist_ok=True)
-        
+
         print(f"Using model '{config.llm_model_name}' from '{config.llm_base_url}'")
 
     def query(
@@ -114,7 +113,7 @@ class LLM:
             "temperature": self.config.llm_temperature,
             "top_p": self.config.llm_top_p,
         }
-        
+
         if tools:
             payload["tools"] = tools
         if max_tokens is not None:
@@ -130,7 +129,7 @@ class LLM:
             timestamp = now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
             prompt_filename = f"{timestamp}_{model_name}_{seq_str}_prompt.log"
             prompt_filepath = os.path.join(self.logs_dir, prompt_filename)
-            
+
             try:
                 with open(prompt_filepath, "w", encoding="utf-8") as f:
                     json.dump(payload, f, indent=2, ensure_ascii=False)
@@ -139,14 +138,14 @@ class LLM:
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.llm_api_key}"
+            "Authorization": f"Bearer {self.config.llm_api_key}",
         }
 
         req = urllib.request.Request(
             url,
             data=json.dumps(payload).encode("utf-8"),
             headers=headers,
-            method="POST"
+            method="POST",
         )
 
         res_json = {}
@@ -180,7 +179,7 @@ class LLM:
             resp_timestamp = resp_now.strftime("%Y-%m-%d_%H-%M-%S.%f")[:-4]
             response_filename = f"{resp_timestamp}_{model_name}_{seq_str}_response.log"
             response_filepath = os.path.join(self.logs_dir, response_filename)
-            
+
             try:
                 with open(response_filepath, "w", encoding="utf-8") as file_handle:
                     json.dump(res_json, file_handle, indent=2, ensure_ascii=False)
@@ -199,22 +198,22 @@ class LLM:
 
         message_data = choices[0].get("message", {})
         content = message_data.get("content") or ""
-        
+
         raw_tool_calls = message_data.get("tool_calls") or []
         tool_calls = []
         for tc_dict in raw_tool_calls:
             func_dict = tc_dict.get("function", {})
             func_obj = ToolCallFunction(
                 name=func_dict.get("name", ""),
-                arguments=func_dict.get("arguments", "{}")
+                arguments=func_dict.get("arguments", "{}"),
             )
-            
+
             tc_id = tc_dict.get("id") or f"call_{uuid.uuid4().hex[:12]}"
-            
-            tool_calls.append(ToolCall(
-                id=tc_id,
-                function=func_obj,
-                type=tc_dict.get("type", "function")
-            ))
+
+            tool_calls.append(
+                ToolCall(
+                    id=tc_id, function=func_obj, type=tc_dict.get("type", "function")
+                )
+            )
 
         return content, tool_calls

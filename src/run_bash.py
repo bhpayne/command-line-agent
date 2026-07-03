@@ -10,14 +10,14 @@ class Bash:
     """
     An implementation of a tool that executes Bash commands
     """
- 
+
     def __init__(self, config: Config):
         self.cwd = config.root_dir  # The current working directory
         self._allowed_commands = config.allowed_commands  # Allowed commands
- 
+
     def _extract_commands(self, cmd: str) -> List[str]:
         """
-        Splits command chain by pipes and semicolons, extracting the base executable 
+        Splits command chain by pipes and semicolons, extracting the base executable
         of each segment to cross-reference with the allowlist.
         """
         extracted = []
@@ -38,18 +38,18 @@ class Bash:
         if cmd:
             # Check the allowlist
             allowed = True
- 
+
             for cmd_part in self._extract_commands(cmd):
                 if cmd_part not in self._allowed_commands:
                     allowed = False
                     break
- 
+
             if not allowed:
                 return {"error": "Parts of this command were not in the allowlist."}
- 
+
             return self._run_bash_command(cmd)
         return {"error": "No command was provided"}
- 
+
     def to_json_schema(self) -> Dict[str, Any]:
         """
         Convert the function signature to a JSON schema for LLM tool calling.
@@ -64,14 +64,14 @@ class Bash:
                     "properties": {
                         "cmd": {
                             "type": "string",
-                            "description": "The bash command to execute"
+                            "description": "The bash command to execute",
                         }
                     },
                     "required": ["cmd"],
                 },
             },
         }
- 
+
     def _run_bash_command(self, cmd: str) -> Dict[str, str]:
         """
         Runs the bash command and catches exceptions (if any).
@@ -79,29 +79,32 @@ class Bash:
         stdout = ""
         stderr = ""
         new_cwd = self.cwd
- 
+
         try:
             # Wrap the command so we can keep track of the working directory.
             wrapped = f"{cmd};echo __END__;pwd"
             result = subprocess.run(
-                wrapped, shell=True, cwd=self.cwd,
-                capture_output=True, text=True,
-                executable="/bin/bash"
+                wrapped,
+                shell=True,
+                cwd=self.cwd,
+                capture_output=True,
+                text=True,
+                executable="/bin/bash",
             )
             stderr = result.stderr
             # Find the separator marker
             split = result.stdout.split("__END__")
             stdout = split[0].strip()
- 
+
             # If no output/error at all, inform that the call was successful.
             if not stdout and not stderr:
                 stdout = "Command executed successfully, without any output."
- 
+
             # Get the new working directory, and change it
             new_cwd = split[-1].strip()
             self.cwd = new_cwd
         except Exception as e:
             stdout = ""
             stderr = str(e)
- 
+
         return {"stdout": stdout, "stderr": stderr, "cwd": new_cwd}
