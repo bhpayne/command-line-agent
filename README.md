@@ -24,6 +24,26 @@ Using model 'gemini-2.5-flash' from 'https://generativelanguage.googleapis.com/v
 
 A container (e.g., Docker, Podman, Apptainer) or a Virtual Machine can isolate the agent.
 
+To use the agent on a virtual machine,
+```
+cd src/
+python3 main_loop.py --isolated
+```
+
+To build and launch a Docker container,
+```
+make container_build
+make container_live_as_root
+```
+which puts you inside the container where you can then run
+```
+[root@30009b4ce9d2 opt]# python3 main_loop.py 
+Using model 'gemini-2.5-flash' from 'https://generativelanguage.googleapis.com/v1beta/openai'
+[INFO] Type 'quit' at any time to exit the agent loop.
+
+['/opt' 🙂] clone the repo git@github.com:yourusername/yourproject.git
+```
+
 # Example capabilities
 
 - inspect this directory tree and find the 5 largest files
