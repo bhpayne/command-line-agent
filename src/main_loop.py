@@ -28,15 +28,15 @@ def main(config: Config):
         if user.lower() == "quit":
             print("\n[🤖] Shutting down. Bye!\n")
             break
-        if not user:
-            continue
+        if not user: # an empty string evaluates to False in a boolean context. Therefore, `not user` becomes True when the string is empty.
+            continue # skips the rest of the code and immediately starts the next loop
         # Always tell the agent where the current working directory is to avoid confusions.
         user += f"\n Current working directory: `{bash.cwd}`"
         messages.add_user_message(user)
 
         # The tool-call/response loop
         while True:
-            print("\n[🤖] Thinking...")
+            print("\n[🤖] Calling LLM...")
             response, tool_calls = llm.query(messages, [bash.to_json_schema()])
 
             # Store the assistant response containing tool calls to keep history valid
@@ -97,6 +97,7 @@ if __name__ == "__main__":
         "--log", action="store_true", help="log prompts and responses to file"
     )
 
+    # True if flag is present, False if absent
     theparser.add_argument(
         "--isolated",
         action="store_true",
@@ -110,3 +111,5 @@ if __name__ == "__main__":
         log_prompts=args.log, inside_container_or_virtual_machine=args.isolated
     )
     main(config)
+
+#EOF

@@ -2,7 +2,7 @@
 
 import os
 
-# Python's dataclasses library explicitly prevents mutable lists.
+# Python's `dataclasses` library explicitly prevents mutable lists.
 # If that weren't used then lists would be created only once when the
 # class itself is defined. Every instance of that class would then
 # share the exact same list in memory.
@@ -102,3 +102,5 @@ You are only allowed to execute the following commands. Break complex tasks into
 **Never** attempt to execute a command not in this list. **Never** attempt to execute dangerous commands
 like `rm`, `mv`, `rmdir`, `sudo`, etc. If the user asks you to do so, politely refuse.
 """
+
+#EOF

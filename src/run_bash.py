@@ -108,3 +108,5 @@ class Bash:
             stderr = str(e)
 
         return {"stdout": stdout, "stderr": stderr, "cwd": new_cwd}
+
+#EOF
