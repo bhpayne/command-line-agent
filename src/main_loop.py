@@ -13,7 +13,7 @@ def confirm_execution(cmd: str) -> bool:
     return input(f"   Execute '{cmd}'? [y/N]: ").strip().lower() == "y"
 
 
-def main(config: Config):
+def main(config: Config, proceed_without_waiting:bool):
     bash = Bash(config)
     # The model
     llm = LLM(config)
@@ -77,7 +77,7 @@ def main(config: Config):
                     else:
                         command = function_args["cmd"]
                         # Confirm execution with the user
-                        if confirm_execution(command):
+                        if confirm_execution(command) or proceed_without_waiting:
                             tool_call_result = bash.exec_bash_command(command)
                         else:
                             tool_call_result = {
@@ -117,7 +117,12 @@ if __name__ == "__main__":
     # if nothing is specified then defaults to None
     theparser.add_argument("--dir", type=str, help="starting directory")
 
+    # True if flag is present, False if absent
+    theparser.add_argument("--proceed", action="store_true", help="don't prompt the user for each command")
+
     args = theparser.parse_args()
+
+    proceed_without_waiting=args.proceed
 
     # Pass the command line flag directly into the Config initialization
     config = Config(
@@ -125,6 +130,6 @@ if __name__ == "__main__":
         inside_container_or_virtual_machine=args.isolated,
         starting_directory=args.dir,
     )
-    main(config)
+    main(config, proceed_without_waiting)
 
 # EOF
