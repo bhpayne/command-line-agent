@@ -43,7 +43,7 @@ make container_live_as_root
 ```
 which puts you inside the container where you can then run
 ```
-[root@30009b4ce9d2 opt]# python3 /agent/main_loop.py --isolated --dir /opt
+[root@30009b4ce9d2 opt]# python3 /agent/main_loop.py --isolated --dir /opt --log
 Using model 'gemini-2.5-flash' from 'https://generativelanguage.googleapis.com/v1beta/openai'
 [INFO] Type 'quit' at any time to exit the agent loop.
 
