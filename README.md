@@ -69,11 +69,16 @@ In `main_loop.py`
 1. The LLM interprets the request, breaks it into concrete steps, and uses the Bash class when command execution is needed. Some tasks may require no execution at all, while others may span multiple commands. After each run, the model receives the output and decides the next step or when to stop.
 1. Once the task is complete, whether successful or halted by an error, the agent returns the result to the user and waits for the next instruction.
 
+For more complicated orchestration see <https://github.com/bhpayne/bash-agent-workflow>
+
 # From
 
 From <https://developer.nvidia.com/blog/create-your-own-bash-computer-use-agent-with-nvidia-nemotron-in-one-hour/>
 and the accompanying <https://www.youtube.com/watch?v=F7f-eFou2-o> and <https://github.com/NVIDIA/GenerativeAIExamples/tree/be9acc9b9286a8b4ba3ef6d56dcb7ff989d5681a/nemotron/LLM/bash_computer_use_agent>
 
+## Other simliar efforts
+
+<https://github.com/bhpayne/bash-agent> is a talk about <https://pi.dev/>
 
 # Monitor API usage for Gemini
 
